@@ -6,18 +6,18 @@ def pip_msm(es, gs, num_bits, c):
     gs: list of EC Points
     num_bits: int, number of bits of scalars
     c: bit window to use for Pippengers
-
-    Assume: num_bits is a multiple of c
+    Returns: \sum_i e_i g_i
     '''
     nbucket = num_bits // c
     two_c = int(2**c)
-    curr = 0
+    cidx = 0
     window_sums = []
 
-    while curr <= num_bits:
+    while cidx <= num_bits:
+        # Point.inf + g = g + Point.inf = g for all g \in curve
         bucket = [Point.infinity()] * (two_c)
         for e, g in zip(es, gs):
-            b = (e >> curr) % two_c
+            b = (e >> cidx) % two_c # bit shift, grab last c bits
             if b == 0:
                 continue
             else:
@@ -29,7 +29,7 @@ def pip_msm(es, gs, num_bits, c):
             running_sum += bucket[j]
             acc += running_sum
 
-        curr += c
+        cidx += c
         window_sums.append(acc)
 
     total = Point.infinity()

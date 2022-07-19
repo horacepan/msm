@@ -4,6 +4,7 @@ from ecpy.curves import Curve, Point
 def generate_points(n=100):
     '''
     Randomly generate n scalars and curve points on secp256k1
+    Curve points are random linear combinations of P and Q
     '''
     cv = Curve.get_curve('secp256k1')
     px = 0x65d5b8bf9ab1801c9f168d4815994ad35f1dcb6ae6c7a1a303966b677b813b00
@@ -19,6 +20,10 @@ def generate_points(n=100):
     return scalars, points
 
 def manual_msm(es, gs):
+    '''
+    es: list of ints
+    gs: list of elliptic curve points
+    '''
     acc = Point.infinity()
     for e, g in zip(es, gs):
         acc += e*g

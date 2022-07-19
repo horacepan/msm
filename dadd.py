@@ -9,6 +9,10 @@ def to_binary(s):
     return bits
 
 def double_add(s, g):
+    '''
+    s: int, scalar
+    g: elliptic curve point
+    '''
     if s < 0:
         return (-1) * double_add(abs(s), g)
 
@@ -19,4 +23,5 @@ def double_add(s, g):
         out += out
         if i:
             out += g
+
     return out
