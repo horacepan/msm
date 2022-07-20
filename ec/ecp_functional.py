@@ -46,7 +46,7 @@ def add(px, py, qx, qy, a, b, q) -> tuple[int, int, bool]:
         return 0, 0, True
 
 def sub(px, py, qx, qy, a, b, q) -> tuple[int, int, bool]:
-    return add(px, py, qx, qy, a, b, q)
+    return add(px, py, qx, -qy, a, b, q)
 
 def dbl_jac(X1, Y1, Z1, q, a) -> tuple[int, int, int]:
     XX   = (X1*X1)%q

@@ -12,9 +12,11 @@ def test_secp256k1():
     p2 = p1 + p1
     p4 = p2 + p2
     p8 = p4 + p4
+    p5 = p4 + p1
     p13 = p8 + p4 + p2 - p1
 
     assert (p13 == (13 * p1))
+    assert (p5 == (p13 - p8))
     print('Okay!')
 
 def test():
