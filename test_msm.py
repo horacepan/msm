@@ -1,12 +1,11 @@
 import time
 import numpy as np
-from ecpy.curves import Curve, Point
 from utils import generate_points, manual_msm
 from pippenger import pip_msm
 
 def test_msm(n=10000):
     st = time.time()
-    es, gs = generate_points(n)
+    es, gs = generate_points('secp256k1', n)
     print('Time to gen points: {:.2f}s'.format(time.time() - st))
     es = np.abs(es) # TODO: handle negative case
 

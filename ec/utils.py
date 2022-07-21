@@ -1,5 +1,5 @@
 import numpy as np
-from ecp import ECP
+from .ecp import ECP
 
 def _generate_random(P, Q, n):
     '''

@@ -1,4 +1,4 @@
-from ecpy.curves import Curve,Point
+import ec.ecp
 
 def pip_msm(es, gs, num_bits, c):
     '''
@@ -15,7 +15,7 @@ def pip_msm(es, gs, num_bits, c):
 
     while cidx <= num_bits:
         # Point.inf + g = g + Point.inf = g for all g \in curve
-        bucket = [Point.infinity()] * (two_c)
+        bucket = [ec.ecp.infinity()] * (two_c)
         for e, g in zip(es, gs):
             b = (e >> cidx) % two_c # bit shift, grab last c bits
             if b == 0:
@@ -23,8 +23,8 @@ def pip_msm(es, gs, num_bits, c):
             else:
                 bucket[b] += g
 
-        acc = Point.infinity()
-        running_sum = Point.infinity()
+        acc = ec.ecp.infinity()
+        running_sum = ec.ecp.infinity()
         for j in range(len(bucket) - 1, 0, -1):
             running_sum += bucket[j]
             acc += running_sum
@@ -32,7 +32,7 @@ def pip_msm(es, gs, num_bits, c):
         cidx += c
         window_sums.append(acc)
 
-    total = Point.infinity()
+    total = ec.ecp.infinity()
     for window in window_sums[::-1]:
         for _ in range(c):
             total += total
