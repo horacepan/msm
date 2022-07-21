@@ -17,7 +17,9 @@ def test_cuda_msm(n=10000):
     st = time.time()
     psum = cuda_pip_msm(es, gs, num_bits=32, c=8)
     t2 = time.time() - st
-    assert(true_sum == psum)
+    print(psum[0])
+    print(psum[1])
+    assert(true_sum.x == psum[0] and true_sum.y == psum[1])
     print('Native: {:.2f}s | Pip: {:.2f}s | Len: {}'.format(t1, t2, len(gs)))
 
 if __name__ == '__main__':
