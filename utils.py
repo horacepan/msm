@@ -19,6 +19,14 @@ def generate_points(n=100):
     points = [(a*P + b*Q) for a,b in xs]
     return scalars, points
 
+def generate_scalar_vectors(n=100):
+    '''
+    Randomly generate 2 vectors of n scalars.
+    '''
+    scalars1 = np.random.randint(-10000, 10000, size=(n,))
+    scalars2 = np.random.randint(-10000, 10000, size=(n,))
+    return scalars1, scalars2
+
 def manual_msm(es, gs):
     '''
     es: list of ints
