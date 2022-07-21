@@ -1,4 +1,4 @@
-from ecp_functional import add, sub, mul, on_curve
+from .ecp_functional import add, sub, mul, on_curve
 
 class ECP:
     def __init__(self, x, y, a, b, q, is_inf=False):
@@ -14,6 +14,11 @@ class ECP:
         self.is_inf = is_inf
 
     def __add__(self, Q):
+        if self.is_inf:
+            return Q
+        if Q.is_inf:
+            return self
+
         px, py = self.x, self.y
         qx, qy = Q.x, Q.y
         a, b = self.a, self.b
@@ -21,15 +26,10 @@ class ECP:
         x, y, is_inf = add(px, py, qx, qy, a, b, q)
         return ECP(x, y, a, b, q, is_inf)
 
-    def __sub__(self, Q):
-        px, py = self.x, self.y
-        qx, qy = Q.x, Q.y
-        a, b = self.a, self.b
-        q = self.q
-        x, y, is_inf = add(px, py, qx, -qy, a, b, q)
-        return ECP(x, y, a, b, q, is_inf)
-
     def __mul__(self, k):
+        if self.is_inf:
+            return self
+
         x, y = self.x, self.y
         a, b = self.a, self.b
         q = self.q
@@ -50,3 +50,7 @@ class ECP:
 
     def on_curve(self):
         return on_curve(self.x, self.y, self.a, self.b, self.q)
+
+
+def infinity():
+    return ECP(0, 0, 0, 0, 0, True)
