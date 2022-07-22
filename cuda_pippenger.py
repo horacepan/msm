@@ -12,9 +12,6 @@ def cuda_pip_msm(scalars, points, num_bits, c):
     nbuckets = math.ceil(num_bits/c)
     two_c = int(2**c)
 
-    # Convert the points to an numpy array of x and y coordinates
-    xyCoords = np.asarray([[p.x, p.y] for p in points], dtype=np.uint32)
-
     @cuda.jit
     def pippengers(scalars, xyCoords, a, b, q, result):
         # Allocate local memory for the window buckets and
@@ -54,11 +51,18 @@ def cuda_pip_msm(scalars, points, num_bits, c):
         for window in windowSums[::-1]:
             for _ in range(c):
                 result[0], result[1], _ = ecpf.gpu_add(result[0], result[1], result[0], result[1], a, b, q)
-            result[0], result[1], _ = ecpf.gpu_add(result[0], result[1], window[0], window[1], a, b, q) 
+            result[0], result[1], _ = ecpf.gpu_add(result[0], result[1], window[0], window[1], a, b, q)
+
+    # Convert the points to an numpy array of x and y coordinates
+    xyCoords = np.asarray([[p.x, p.y] for p in points], dtype=np.uint32)
+    d_xyCoords = cuda.to_device(xyCoords)
+    d_scalars = cuda.to_device(scalars)
 
     # Allocate the result array, which is a one element array (https://numba.readthedocs.io/en/stable/cuda/kernels.html#kernel-declaration)
     result = cuda.device_array((2,), np.uint64)
 
     # Just run it with 1 thread for now.
-    pippengers[1, 1](scalars, xyCoords, points[0].a, points[0].b, points[0].q, result)
+    pippengers[1, 1](d_scalars, d_xyCoords, points[0].a, points[0].b, points[0].q, result)
+    result.copy_to_host()
+
     return result
