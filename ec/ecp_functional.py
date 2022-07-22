@@ -188,6 +188,9 @@ def gpu_add_jac(X1,Y1,Z1, X2,Y2,Z2, q) -> tuple[int, int, int]:
 
 @cuda.jit
 def gpu_pow(x, y, q):
+    '''
+    Implements the `exp_by_squaring_iterative` function here: https://en.wikipedia.org/wiki/Exponentiation_by_squaring#With_constant_auxiliary_memory
+    '''
     if y == 0:
         return 1
     z = 1
