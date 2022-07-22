@@ -23,18 +23,18 @@ def pip_msm_jac(es, gs, num_bits, c, a, q):
     '''
     nbuckets = num_bits // c
     two_c = int(2**c)
-    cidx = 0
-    window_sums = []
+    window_sums = [JAC_INF] * (nbuckets + 1)
 
-    while cidx <= num_bits:
+    for widx in range(nbuckets + 1):
         # Point.inf + g = g + Point.inf = g for all g \in curve
+        right_shift = c * widx
         bucket = [JAC_INF] * (two_c)
         for e, g in zip(es, gs):
-            b = (e >> cidx) % two_c # bit shift, grab last c bits
+            b = (e >> right_shift) % two_c # bit shift, grab last c bits
             if b == 0:
                 continue
-
-            bucket[b] = jac_add(*bucket[b], g.x, g.y, 1, a, q)
+            else:
+                bucket[b] = jac_add(*bucket[b], g.x, g.y, 1, a, q)
 
         acc = JAC_INF
         running_sum = JAC_INF
@@ -42,17 +42,13 @@ def pip_msm_jac(es, gs, num_bits, c, a, q):
             running_sum = jac_add(*running_sum, *bucket[j], a, q)
             acc = jac_add(*acc, *running_sum, a, q)
 
-        cidx += c
-        window_sums.append(acc)
+        window_sums[widx] = acc
 
     total = JAC_INF
     for window in window_sums[::-1]:
-        if total[-1] == 0:
-            total = window
-        else:
-            for _ in range(c):
-                total = dbl_jac(*total, q, a)
-            total = jac_add(*total, *window, a, q)
+        for _ in range(c):
+            total = dbl_jac(*total, q, a)
+        total = jac_add(*total, *window, a, q)
 
     # convert from jacobian -> affine
     aff = jac2aff(*total, q)

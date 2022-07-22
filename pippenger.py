@@ -8,15 +8,16 @@ def pip_msm(es, gs, num_bits, c):
     c: bit window to use for Pippengers
     Returns: \sum_i e_i g_i
     '''
+    nbuckets = num_bits // c
     two_c = int(2**c)
-    cidx = 0
-    window_sums = []
+    window_sums = [ec.ecp.infinity()] * (nbuckets + 1)
 
-    while cidx <= num_bits:
+    for widx in range(nbuckets + 1):
         # Point.inf + g = g + Point.inf = g for all g \in curve
+        right_shift = c * widx
         bucket = [ec.ecp.infinity()] * (two_c)
         for e, g in zip(es, gs):
-            b = (e >> cidx) % two_c # bit shift, grab last c bits
+            b = (e >> right_shift) % two_c # bit shift, grab last c bits
             if b == 0:
                 continue
             else:
@@ -28,8 +29,7 @@ def pip_msm(es, gs, num_bits, c):
             running_sum += bucket[j]
             acc += running_sum
 
-        cidx += c
-        window_sums.append(acc)
+        window_sums[widx] = acc
 
     total = ec.ecp.infinity()
     for window in window_sums[::-1]:
