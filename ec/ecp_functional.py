@@ -51,6 +51,8 @@ def sub(px, py, qx, qy, a, b, q) -> tuple[int, int, bool]:
     return add(px, py, qx, -qy, a, b, q)
 
 def dbl_jac(X1, Y1, Z1, q, a) -> tuple[int, int, int]:
+    if Z1 == 0:
+        return X1, Y1, Z1
     XX   = (X1*X1)%q
     YY   = (Y1*Y1)%q
     YYYY = (YY*YY)%q
@@ -64,6 +66,38 @@ def dbl_jac(X1, Y1, Z1, q, a) -> tuple[int, int, int]:
     return X3,Y3,Z3
 
 def add_jac(X1,Y1,Z1, X2,Y2,Z2, q) -> tuple[int, int, int]:
+    if Z1 == 0:
+        return X2, Y2, Z2
+    elif Z2 == 0:
+        return X1, Y1, Z1
+    Z1Z1 = (Z1*Z1)%q
+    Z2Z2 = (Z2*Z2)%q
+    U1   = (X1*Z2Z2)%q
+    U2   = (X2*Z1Z1)%q
+    S1   = (Y1*Z2*Z2Z2)%q
+    S2   = (Y2*Z1*Z1Z1)%q
+    H    = (U2-U1)%q
+    I    = ((2*H)*(2*H))%q
+    J    = (H*I)%q
+    r    = (2*(S2-S1))%q
+    V    = (U1*I)%q
+    X3   = (r*r-J-2*V)%q
+    Y3   = (r*(V-X3)-2*S1*J)%q
+    Z3   = (((Z1+Z2)*(Z1+Z2)-Z1Z1-Z2Z2)*H)%q
+    return X3,Y3,Z3
+
+# This is basically same as add_jac but with additional a parameter
+# in case we need to call dbl_jac. For some reason,
+# add_jac(p1, p1) returns the wrong answer on some specific ec points
+# while dbl_jac does right thing ...
+def jac_add(X1,Y1,Z1, X2,Y2,Z2, a, q) -> tuple[int, int, int]:
+    if Z1 == 0:
+        return X2, Y2, Z2
+    elif Z2 == 0:
+        return X1, Y1, Z1
+    if (X1 == X2) and (Y1 == Y2) and (Z1 == Z2):
+        return dbl_jac(X1, Y1, Z1, q, a)
+
     Z1Z1 = (Z1*Z1)%q
     Z2Z2 = (Z2*Z2)%q
     U1   = (X1*Z2Z2)%q
