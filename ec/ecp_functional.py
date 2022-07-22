@@ -148,12 +148,12 @@ def gpu_dbl_jac(X1, Y1, Z1, q, a) -> tuple[int, int, int]:
     YY   = (Y1*Y1)%q
     YYYY = (YY*YY)%q
     ZZ   = (Z1*Z1)%q
-    S    = (2*((X1+YY)*(X1+YY)-XX-YYYY))%q
-    M    = (3*XX+a*ZZ*ZZ)%q
-    T    = (M*M-2*S)%q
+    S    = (2*((X1+YY)%q*(X1+YY)-XX-YYYY))%q
+    M    = ((3*XX)%q+((a*ZZ)%q*ZZ)%q)%q
+    T    = ((M*M)%q-(2*S)%q)%q
     X3   = (T)%q
-    Y3   = (M*(S-T)-8*YYYY)%q
-    Z3   = ((Y1+Z1)*(Y1+Z1)-YY-ZZ)%q
+    Y3   = ((M*(S-T))%q-(8*YYYY)%q)%q
+    Z3   = (((Y1+Z1)*(Y1+Z1))%q-YY-ZZ)%q
     return X3,Y3,Z3
 
 @cuda.jit
@@ -162,16 +162,16 @@ def gpu_add_jac(X1,Y1,Z1, X2,Y2,Z2, q) -> tuple[int, int, int]:
     Z2Z2 = (Z2*Z2)%q
     U1   = (X1*Z2Z2)%q
     U2   = (X2*Z1Z1)%q
-    S1   = (Y1*Z2*Z2Z2)%q
-    S2   = (Y2*Z1*Z1Z1)%q
+    S1   = ((Y1*Z2)%q*Z2Z2)%q
+    S2   = ((Y2*Z1)%q*Z1Z1)%q
     H    = (U2-U1)%q
-    I    = ((2*H)*(2*H))%q
+    I    = ((2*H)%q*(2*H)%q)%q
     J    = (H*I)%q
     r    = (2*(S2-S1))%q
     V    = (U1*I)%q
-    X3   = (r*r-J-2*V)%q
-    Y3   = (r*(V-X3)-2*S1*J)%q
-    Z3   = (((Z1+Z2)*(Z1+Z2)-Z1Z1-Z2Z2)*H)%q
+    X3   = ((r*r)%q-J-(2*V)%q)%q
+    Y3   = ((r*(V-X3))%q-((2*S1)%q*J)%q)%q
+    Z3   = ((((Z1+Z2)*(Z1+Z2))%q-Z1Z1-Z2Z2)*H)%q
     return X3,Y3,Z3
 
 @cuda.jit
