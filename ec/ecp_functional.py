@@ -121,6 +121,16 @@ def gpu_add(px, py, qx, qy, a, b, q) -> tuple[int, int, bool]:
     - the x, y coordinates
     - a bool indicating whether the point is the infinity point.
     '''
+    PisInf = (px == 0) and (py == 0)   # P is inf
+    QisInf = (qx == 0) and (qy == 0)   # Q is inf
+
+    if PisInf and QisInf:
+        return 0, 0, True
+    elif PisInf:   # Return Q
+        return qx, qy, False
+    else:  # Q is inf.  Return P.
+        return px, py, False
+
     if px == qx and py == qy:
         Px, Py, Pz = gpu_aff2jac(px,py)
         x, y, z = gpu_dbl_jac(Px, Py, Pz, q, a)
