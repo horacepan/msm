@@ -8,7 +8,6 @@ def pip_msm(es, gs, num_bits, c):
     c: bit window to use for Pippengers
     Returns: \sum_i e_i g_i
     '''
-    nbucket = num_bits // c
     two_c = int(2**c)
     cidx = 0
     window_sums = []

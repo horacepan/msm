@@ -8,6 +8,8 @@ can be represented by a 5 ints (x, y, z, a, b, q).
 Adapted from ECPy's curve module:
 https://ec-python.readthedocs.io/en/latest/
 '''
+output = False
+
 def aff2jac(x, y) -> tuple[int, int, int]:
     '''
     Convert from affine coordinates to jacobian
@@ -128,7 +130,7 @@ def gpu_add(px, py, qx, qy, a, b, q) -> tuple[int, int, bool]:
         return 0, 0, True
     elif PisInf:   # Return Q
         return qx, qy, False
-    else:  # Q is inf.  Return P.
+    elif QisInf:   # Return P.
         return px, py, False
 
     if px == qx and py == qy:
@@ -158,7 +160,7 @@ def gpu_dbl_jac(X1, Y1, Z1, q, a) -> tuple[int, int, int]:
     YY   = (Y1*Y1)%q
     YYYY = (YY*YY)%q
     ZZ   = (Z1*Z1)%q
-    S    = (2*((X1+YY)%q*(X1+YY)-XX-YYYY))%q
+    S    = (2*(((X1+YY)%q*(X1+YY)%q)%q-XX-YYYY))%q
     M    = ((3*XX)%q+((a*ZZ)%q*ZZ)%q)%q
     T    = ((M*M)%q-(2*S)%q)%q
     X3   = (T)%q
@@ -185,15 +187,29 @@ def gpu_add_jac(X1,Y1,Z1, X2,Y2,Z2, q) -> tuple[int, int, int]:
     return X3,Y3,Z3
 
 @cuda.jit
+def gpu_pow(x, y, q):
+    if y == 0:
+        return 1
+    z = 1
+    while y > 1:
+        if y % 2 == 0:
+            x = (x*x)%q
+            y = y // 2
+        else:
+            z = (x*z)%q
+            x = (x*x)%q
+            y = (y-1) // 2
+    return (x*z)%q
+
+@cuda.jit
 def gpu_jac2aff(x, y, z, q) -> tuple[int, int]:
     '''
     Convert from jacobian coordinates to affine
     '''
     # z^{p-1} = 1 mod p, so z^{p-2} * z = 1 mod p
-    invz = math.pow(z, q-2)
-    invz = invz%q
+    invz = gpu_pow(z, q-2, q)
 
     sqinvz = (invz*invz)%q
     x = (x*sqinvz)%q
-    y = (y*sqinvz*invz)%q
+    y = ((y*sqinvz)%q*invz)%q
     return (x, y)
